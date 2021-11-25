@@ -23,6 +23,17 @@ definitions:
     type: object
     additionalProperties:
       $ref: '#/definitions/DnsResult'
+  PingHostResult:
+    properties:
+      response-time-ms:
+        type: number
+        format: int64
+      error:
+        type: string
+  PingHostResults:
+    type: object
+    additionalProperties:
+      $ref: '#/definitions/PingHostResult'
   PingResults:
     type: object
     properties:
@@ -62,6 +73,8 @@ definitions:
     properties:
       dnsResults:
         $ref: '#/definitions/DnsResults'
+      pingHostResults:
+        $ref: '#/definitions/PingHostResults'
       podResults:
         type: object
         additionalProperties:
@@ -114,6 +127,10 @@ definitions:
         type: object
         additionalProperties:
           $ref: '#/definitions/DnsResults'
+      pingHostResults:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/PingHostResults'
       responses:
         type: object
         additionalProperties:

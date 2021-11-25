@@ -46,6 +46,9 @@ func CheckNeighbours(ctx context.Context) *models.CheckResults {
 	if len(GoldpingerConfig.DnsHosts) > 0 {
 		final.DNSResults = *checkDNS()
 	}
+	if len(GoldpingerConfig.PingHosts) > 0 {
+		final.PingHostResults = *pingHosts()
+	}
 	return &final
 }
 

@@ -258,6 +258,14 @@ and `goldpinger` should show something like this:
 
 ![screenshot-DNS-resolution](./extras/dns-screenshot.png)
 
+### Note on Hosts
+
+In addition to pinging IPs, you can use `HOSTS_TO_PING` (similar to `HOSTS_TO_RESOLVE`) that will ping arbitrary host names in addition to IPs
+
+```yaml
+            - name: HOSTS_TO_PING
+              value: "www.bloomberg.com one.two.three"
+```
 
 ## Usage
 

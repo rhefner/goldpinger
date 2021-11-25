@@ -34,7 +34,8 @@ var GoldpingerConfig = struct {
 	Namespace        *string `long:"namespace" description:"namespace to use to discover goldpinger pods in the cluster (empty for all). Defaults to discovering the namespace for the current pod" env:"NAMESPACE"`
 	KubernetesClient *kubernetes.Clientset
 
-	DnsHosts []string `long:"host-to-resolve" description:"A host to attempt dns resolve on (space delimited)" env:"HOSTS_TO_RESOLVE" env-delim:" "`
+	DnsHosts  []string `long:"host-to-resolve" description:"A host to attempt dns resolve on (space delimited)" env:"HOSTS_TO_RESOLVE" env-delim:" "`
+	PingHosts []string `long:"host-to-ping" description:"A host to attempt ping on (space delimited)" env:"HOSTS_TO_PING" env-delim:" "`
 
 	IPVersions []string `long:"ip-versions" description:"The IP versions to use (space delimited). Possible values are 4 and 6 (defaults to 4)." env:"IP_VERSIONS" env-delim:" "`
 
