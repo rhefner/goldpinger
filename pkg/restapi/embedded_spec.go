@@ -203,6 +203,12 @@ func init() {
           "type": "integer",
           "format": "int32"
         },
+        "pingHostResults": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/PingHostResults"
+          }
+        },
         "responses": {
           "type": "object",
           "additionalProperties": {
@@ -216,6 +222,9 @@ func init() {
       "properties": {
         "dnsResults": {
           "$ref": "#/definitions/DnsResults"
+        },
+        "pingHostResults": {
+          "$ref": "#/definitions/PingHostResults"
         },
         "podResults": {
           "type": "object",
@@ -293,6 +302,23 @@ func init() {
           "type": "string",
           "format": "date-time"
         }
+      }
+    },
+    "PingHostResult": {
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "response-time-ms": {
+          "type": "number",
+          "format": "int64"
+        }
+      }
+    },
+    "PingHostResults": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/PingHostResult"
       }
     },
     "PingResults": {
@@ -518,6 +544,12 @@ func init() {
           "type": "integer",
           "format": "int32"
         },
+        "pingHostResults": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/PingHostResults"
+          }
+        },
         "responses": {
           "type": "object",
           "additionalProperties": {
@@ -547,6 +579,9 @@ func init() {
       "properties": {
         "dnsResults": {
           "$ref": "#/definitions/DnsResults"
+        },
+        "pingHostResults": {
+          "$ref": "#/definitions/PingHostResults"
         },
         "podResults": {
           "type": "object",
@@ -624,6 +659,23 @@ func init() {
           "type": "string",
           "format": "date-time"
         }
+      }
+    },
+    "PingHostResult": {
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "response-time-ms": {
+          "type": "number",
+          "format": "int64"
+        }
+      }
+    },
+    "PingHostResults": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/PingHostResult"
       }
     },
     "PingResults": {

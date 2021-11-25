@@ -22,6 +22,9 @@ type CheckResults struct {
 	// dns results
 	DNSResults DNSResults `json:"dnsResults,omitempty"`
 
+	// ping host results
+	PingHostResults PingHostResults `json:"pingHostResults,omitempty"`
+
 	// pod results
 	PodResults map[string]PodResult `json:"podResults,omitempty"`
 }
@@ -31,6 +34,10 @@ func (m *CheckResults) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateDNSResults(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validatePingHostResults(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -53,6 +60,23 @@ func (m *CheckResults) validateDNSResults(formats strfmt.Registry) error {
 		if err := m.DNSResults.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("dnsResults")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *CheckResults) validatePingHostResults(formats strfmt.Registry) error {
+	if swag.IsZero(m.PingHostResults) { // not required
+		return nil
+	}
+
+	if m.PingHostResults != nil {
+		if err := m.PingHostResults.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("pingHostResults")
 			}
 			return err
 		}
@@ -90,6 +114,10 @@ func (m *CheckResults) ContextValidate(ctx context.Context, formats strfmt.Regis
 		res = append(res, err)
 	}
 
+	if err := m.contextValidatePingHostResults(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.contextValidatePodResults(ctx, formats); err != nil {
 		res = append(res, err)
 	}
@@ -105,6 +133,18 @@ func (m *CheckResults) contextValidateDNSResults(ctx context.Context, formats st
 	if err := m.DNSResults.ContextValidate(ctx, formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("dnsResults")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *CheckResults) contextValidatePingHostResults(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.PingHostResults.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("pingHostResults")
 		}
 		return err
 	}

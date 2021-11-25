@@ -35,6 +35,9 @@ type CheckAllResults struct {
 	// hosts number
 	HostsNumber int32 `json:"hosts-number,omitempty"`
 
+	// ping host results
+	PingHostResults map[string]PingHostResults `json:"pingHostResults,omitempty"`
+
 	// responses
 	Responses map[string]CheckAllPodResult `json:"responses,omitempty"`
 }
@@ -48,6 +51,10 @@ func (m *CheckAllResults) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateHosts(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validatePingHostResults(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -103,6 +110,24 @@ func (m *CheckAllResults) validateHosts(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *CheckAllResults) validatePingHostResults(formats strfmt.Registry) error {
+	if swag.IsZero(m.PingHostResults) { // not required
+		return nil
+	}
+
+	for k := range m.PingHostResults {
+
+		if val, ok := m.PingHostResults[k]; ok {
+			if err := val.Validate(formats); err != nil {
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
 func (m *CheckAllResults) validateResponses(formats strfmt.Registry) error {
 	if swag.IsZero(m.Responses) { // not required
 		return nil
@@ -133,6 +158,10 @@ func (m *CheckAllResults) ContextValidate(ctx context.Context, formats strfmt.Re
 	}
 
 	if err := m.contextValidateHosts(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidatePingHostResults(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -170,6 +199,21 @@ func (m *CheckAllResults) contextValidateHosts(ctx context.Context, formats strf
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("hosts" + "." + strconv.Itoa(i))
 				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *CheckAllResults) contextValidatePingHostResults(ctx context.Context, formats strfmt.Registry) error {
+
+	for k := range m.PingHostResults {
+
+		if val, ok := m.PingHostResults[k]; ok {
+			if err := val.ContextValidate(ctx, formats); err != nil {
 				return err
 			}
 		}

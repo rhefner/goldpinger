@@ -148,6 +148,24 @@ func checkDNS() *models.DNSResults {
 	return &results
 }
 
+func pingHosts() *models.PingHostResults {
+	results := models.PingHostResults{}
+	for _, host := range GoldpingerConfig.PingHosts {
+
+		var pingHostResult models.PingHostResult
+
+		start := time.Now()
+		_, err := net.LookupIP(host)
+		if err != nil {
+			pingHostResult.Error = err.Error()
+			CountDnsError(host)
+		}
+		pingHostResult.ResponseTimeMs = time.Since(start).Nanoseconds() / int64(time.Millisecond)
+		results[host] = pingHostResult
+	}
+	return &results
+}
+
 // CheckServicePodsResult results of the /check operation
 type CheckServicePodsResult struct {
 	podName           string
