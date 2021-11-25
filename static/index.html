@@ -230,6 +230,7 @@ var main = function(timeout){
                 // prepare nodes
                 var nodes = [];
                 var dnsCheckNodes = [];
+                var pingHostCheckNodes = [];
                 var podIPs = [];
                 var resp = data.responses;
                 for (let podIP in resp) {
@@ -289,7 +290,7 @@ var main = function(timeout){
                     var yoffset = 0;
                     for (let checkedHost in data.dnsResults) {
                         let value = data.dnsResults[checkedHost];
-                        var allOk = true;
+                        var allOk = Object.keys(value).length === Object.keys(data.hosts).length;
                         for (let pod in value) {
                             var podData = value[pod];
                             var elapsed = 0;
@@ -300,7 +301,7 @@ var main = function(timeout){
                             allOk = allOk && podOk
                             edges.push({
                                 source: pod,
-                                target: checkedHost,
+                                target: `${checkedHost} (dns check)`,
                                 _data: {
                                     "OK": podOk,
                                     "elapsed": elapsed,
@@ -310,8 +311,44 @@ var main = function(timeout){
                         }
                         value["OK"] = allOk
                         dnsCheckNodes.push({
-                            "label": checkedHost,
-                            "id": checkedHost,
+                            "label": `${checkedHost} (dns check)`,
+                            "id": `${checkedHost} (dns check)`,
+                            "x": 0,
+                            "y": 0,
+                            _data: value,
+                        });
+                    }
+                }
+
+                // Account for pingHostResults
+                console.debug('pingHostResults:', data)
+                if ('pingHostResults' in data) {
+                    var yoffset = 0;
+                    for (let checkedHost in data.pingHostResults) {
+                        let value = data.pingHostResults[checkedHost];
+                        var allOk = Object.keys(value).length === Object.keys(data.hosts).length;
+                        for (let pod in value) {
+                            var podData = value[pod];
+                            var elapsed = 0;
+                            if ('response-time-ms' in podData) {
+                                elapsed = podData['response-time-ms'];
+                            }
+                            var podOk = (!('error' in podData));
+                            allOk = allOk && podOk
+                            edges.push({
+                                source: pod,
+                                target: `${checkedHost} (ping check)`,
+                                _data: {
+                                    "OK": podOk,
+                                    "elapsed": elapsed,
+                                    "isPingHostCheckNode": true,
+                                }
+                            });
+                        }
+                        value["OK"] = allOk
+                        pingHostCheckNodes.push({
+                            "label": `${checkedHost} (ping check)`,
+                            "id": `${checkedHost} (ping check)`,
                             "x": 0,
                             "y": 0,
                             _data: value,
@@ -363,6 +400,19 @@ var main = function(timeout){
                         s.graph.addNode(node);
                 });
 
+                // generate ping host check nodes on the graph
+                pingHostCheckNodes.forEach(function(node, i, a){
+                        node.x = 2;
+                        node.y = 1 + ((0.6 * i / a.length) - 0.8);
+                        node.size = 10;
+                        node.color = "#4CC40B";
+                        if (!node._data.OK) {
+                                node.color = "red";
+                        }
+                        //console.log(node);
+                        s.graph.addNode(node);
+                });
+
                 // generate the edges
                 edges.forEach(function(edge, i){
                         var color = "#ccc";
@@ -376,6 +426,9 @@ var main = function(timeout){
                         }
                         if ("isDNSCheckNode" in edge._data) {
                                 type = "dashed";
+                        }
+                        if ("isPingHostCheckNode" in edge._data) {
+                                type = "dotted";
                         }
                         var edge = {
                                 id: "e" + i,

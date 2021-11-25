@@ -164,30 +164,35 @@ func pingHosts() *models.PingHostResults {
 		pinger, err := ping.NewPinger(host)
 
 		if err != nil {
-			panic(err)
-		}
-
-		pinger.Count = 1
-		pinger.Timeout = 5 * time.Second
-		err = pinger.Run() // Blocks until finished
-
-		if err != nil {
-			logger.Error("Pinging host failed on run!")
+			// Got an error constructing ping.newPinger, account for error and move on
 			pingHostResult.Error = err.Error()
 			CountPingHostError(host)
 		} else {
-			stats := pinger.Statistics()
+			// Pinger is ready, let's run it.
+			pinger.Count = 1
+			pinger.Timeout = 5 * time.Second
+			err = pinger.Run() // Blocks until finished
 
-			if stats.PacketsRecv == 0 || stats.PacketLoss > 0 {
-				var errStr = fmt.Sprintf("packets tx %d, rx %d, loss %f", stats.PacketsSent, stats.PacketsRecv, stats.PacketLoss)
-				logger.Error("Pinging host failed on stats!", zap.String("error", errStr))
-				pingHostResult.Error = errStr
+			if err != nil {
+				// pinger.Run threw an error, account for error and move on
+				logger.Error("Pinging host failed on run!")
+				pingHostResult.Error = err.Error()
 				CountPingHostError(host)
 			} else {
-				logger.Info("Pinging host succeeded!",
-					zap.Int("packets tx", stats.PacketsSent),
-					zap.Int("packets rx", stats.PacketsRecv),
-					zap.Float64("packet loss", stats.PacketLoss))
+				// pinger.Run was successful, check stats for errors and account
+				stats := pinger.Statistics()
+
+				if stats.PacketsRecv == 0 || stats.PacketLoss > 0 {
+					var errStr = fmt.Sprintf("packets tx %d, rx %d, loss %f", stats.PacketsSent, stats.PacketsRecv, stats.PacketLoss)
+					logger.Error("Pinging host failed on stats!", zap.String("error", errStr))
+					pingHostResult.Error = errStr
+					CountPingHostError(host)
+				} else {
+					logger.Info("Pinging host succeeded!",
+						zap.Int("packets tx", stats.PacketsSent),
+						zap.Int("packets rx", stats.PacketsRecv),
+						zap.Float64("packet loss", stats.PacketLoss))
+				}
 			}
 		}
 
