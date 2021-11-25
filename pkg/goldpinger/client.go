@@ -153,18 +153,29 @@ func pingHosts() *models.PingHostResults {
 	results := models.PingHostResults{}
 	for _, host := range GoldpingerConfig.PingHosts {
 		logger := zap.L().With(
-			zap.String("op", "check"),
 			zap.String("name", host),
 		)
 
-		logger.Debug("Pinging host")
+		logger.Info("Pinging host")
 		var pingHostResult models.PingHostResult
 
 		start := time.Now()
-		_, err := ping.NewPinger(host)
+		pinger, err := ping.NewPinger(host)
 		if err != nil {
+			panic(err)
+		}
+		pinger.Count = 3
+		err = pinger.Run() // Blocks until finished
+		if err != nil {
+			logger.Error("Pinging host failed!")
 			pingHostResult.Error = err.Error()
 			CountPingHostError(host)
+		} else {
+			stats := pinger.Statistics()
+			logger.Info("Pinging host succeeded!",
+				zap.Int("packets transmitted", stats.PacketsSent),
+				zap.Int("packets received", stats.PacketsRecv),
+				zap.Float64("packet loss", stats.PacketLoss))
 		}
 		pingHostResult.ResponseTimeMs = time.Since(start).Nanoseconds() / int64(time.Millisecond)
 		results[host] = pingHostResult
