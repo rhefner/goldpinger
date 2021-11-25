@@ -28,6 +28,7 @@ import (
 	"github.com/bloomberg/goldpinger/v3/pkg/models"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
+	"github.com/go-ping/ping"
 	"go.uber.org/zap"
 )
 
@@ -151,14 +152,19 @@ func checkDNS() *models.DNSResults {
 func pingHosts() *models.PingHostResults {
 	results := models.PingHostResults{}
 	for _, host := range GoldpingerConfig.PingHosts {
+		logger := zap.L().With(
+			zap.String("op", "check"),
+			zap.String("name", host),
+		)
 
+		logger.Debug("Pinging host")
 		var pingHostResult models.PingHostResult
 
 		start := time.Now()
-		_, err := net.LookupIP(host)
+		_, err := ping.NewPinger(host)
 		if err != nil {
 			pingHostResult.Error = err.Error()
-			CountDnsError(host)
+			CountPingHostError(host)
 		}
 		pingHostResult.ResponseTimeMs = time.Since(start).Nanoseconds() / int64(time.Millisecond)
 		results[host] = pingHostResult
@@ -268,6 +274,18 @@ func CheckAllPods(checkAllCtx context.Context, pods map[string]*GoldpingerPod) *
 					result.DNSResults[host] = make(map[string]models.DNSResult)
 				}
 				result.DNSResults[host][response.podName] = response.checkAllPodResult.Response.DNSResults[host]
+			}
+		}
+		if response.checkAllPodResult.Response != nil &&
+			response.checkAllPodResult.Response.PingHostResults != nil {
+			if result.PingHostResults == nil {
+				result.PingHostResults = make(map[string]models.PingHostResults)
+			}
+			for host := range response.checkAllPodResult.Response.PingHostResults {
+				if result.PingHostResults[host] == nil {
+					result.PingHostResults[host] = make(map[string]models.PingHostResult)
+				}
+				result.PingHostResults[host][response.podName] = response.checkAllPodResult.Response.PingHostResults[host]
 			}
 		}
 	}
